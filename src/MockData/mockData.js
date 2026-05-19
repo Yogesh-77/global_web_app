@@ -1,10 +1,19 @@
 export const sensorConfig = [
-  ['Temperature', '°C', 80, '#f97316'], ['Pressure', 'bar', 20, '#00d9ff'], ['Motor Load', '%', 100, '#ef4444'], ['Power', 'kW', 500, '#7c3aed'],
-  ['Vibration', 'mm/s', 12, '#ef4444'], ['Cooling Efficiency', '%', 100, '#22c55e'], ['Voltage', 'V', 480, '#00d9ff'], ['Humidity', '%', 100, '#22c55e']
+  ['Temperature', '°C', 100, '#f97316', 74],
+  ['Pressure', 'bar', 10, '#3b82f6', 3.4],
+  ['Motor Load', '%', 100, '#a855f7', 78],
+  ['Vibration', 'mm/s', 4, '#ec4899', 1.75],
+  ['Power Consumption', 'kW', 250, '#eab308', 144],
+  ['Cooling Efficiency', '%', 100, '#22c55e', 89],
+  ['Voltage', 'V', 480, '#06b6d4', 443],
+  ['Humidity', '%', 100, '#14b8a6', 41],
 ]
 
 export const initialAlarms = [
-  { id: 1, title: 'Reactor Cooling Drift', zone: 'Zone A', severity: 'Critical', priority: 'Critical', confidence: 96, action: 'Activate backup coolant manifold', ts: new Date().toLocaleTimeString() },
-  { id: 2, title: 'Motor Bearing Wear', zone: 'Zone C', severity: 'High', priority: 'High', confidence: 88, action: 'Schedule bearing replacement', ts: new Date().toLocaleTimeString() },
-  { id: 3, title: 'Humidity Instability', zone: 'Zone F', severity: 'Medium', priority: 'Medium', confidence: 74, action: 'Tune HVAC dampers', ts: new Date().toLocaleTimeString() },
+  { id: 1, title: 'Motor Overheating', zone: 'Zone A', severity: 'Critical', priority: 'Critical', confidence: 97, action: 'Reduce Motor Load Immediately', ts: '14:32:01' },
+  { id: 2, title: 'Pressure Spike - Reactor 3', zone: 'Zone B', severity: 'High', priority: 'High', confidence: 91, action: 'Open Relief Valve P-7', ts: '14:31:45' },
+  { id: 3, title: 'Vibration Anomaly - Pump 2', zone: 'Zone C', severity: 'High', priority: 'High', confidence: 89, action: 'Inspect Bearing Assembly', ts: '14:30:10' },
+  { id: 4, title: 'Power Surge - Line 4', zone: 'Zone A', severity: 'Medium', priority: 'Medium', confidence: 78, action: 'Check Circuit Breaker CB-4', ts: '14:29:55' },
+  { id: 5, title: 'Coolant Level Low', zone: 'Zone D', severity: 'Medium', priority: 'Medium', confidence: 75, action: 'Refill Coolant Tank T-2', ts: '14:28:30' },
+  { id: 6, title: 'Fan Speed Deviation', zone: 'Zone B', severity: 'Low', priority: 'Low', confidence: 67, action: 'Check Fan Belt & Speed', ts: '14:27:12' },
 ]

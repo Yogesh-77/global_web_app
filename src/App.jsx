@@ -1,65 +1,78 @@
-import { useMemo, useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Header, SensorCard, AlarmCenter, VoicePanel, WebcamPanel, Analytics } from './Components/Panels'
+import { useEffect, useMemo, useState } from 'react'
+import { TopHeader, SensorCard, AlarmCenter, EmotionVoicePanel, RightCharts } from './Components/Panels'
 import { useTelemetry } from './Hooks/useTelemetry'
 import { initialAlarms } from './MockData/mockData'
 import { createSpeechRecognition } from './Services/voiceService'
 
-const commandResponses = {
-  'show critical alarms': 'Displaying critical alarm stack.',
-  'activate emergency mode': 'Emergency mode engaged.',
-  'simplify dashboard': 'Adaptive UI switched to overload-safe mode.',
-  'reset alarms': 'Alarm queue reset command sent.',
-  'system status': 'System health 94%, AI confidence 91%.',
+const byPriority = { Critical: 0, High: 1, Medium: 2, Low: 3 }
+const responses = {
+  'show critical alarms': 'Filtering critical alarms only.',
+  'activate emergency mode': 'Emergency mode activated.',
+  'simplify dashboard': 'Switched to overload-safe compact mode.',
+  'reset alarms': 'Alarms reset complete.',
+  'system status': 'System stable. Monitoring at high confidence.',
+  start: 'Voice listener started.',
+  stop: 'Voice listener stopped.',
 }
 
 export default function App() {
   const sensors = useTelemetry()
   const [alarms, setAlarms] = useState(initialAlarms)
-  const [emotion, setEmotion] = useState('Focused')
-  const [listening, setListening] = useState(false)
+  const [emotion, setEmotion] = useState('Normal')
   const [transcript, setTranscript] = useState('')
   const [history, setHistory] = useState([])
+  const [listening, setListening] = useState(false)
   const [emergency, setEmergency] = useState(false)
-  const state = emotion === 'Overloaded' ? 'OVERLOAD' : emotion === 'Stressed' ? 'STRESS' : 'NORMAL'
-
-  useEffect(() => {
-    if (alarms.some((a) => a.priority === 'Critical')) setEmergency(true)
-  }, [alarms])
-
+  const [aiResponse, setAiResponse] = useState('Awaiting operator input.')
   const recognition = useMemo(() => createSpeechRecognition(), [])
-  const toggleListening = () => {
-    if (!recognition) return
-    if (!listening) {
-      recognition.onresult = (e) => {
-        const text = e.results[0][0].transcript.toLowerCase()
-        setTranscript(text)
-        setHistory((h) => [...h, `> ${text}`, commandResponses[text] || 'Command acknowledged.'])
-        if (text.includes('emergency')) setEmergency(true)
-        if (text.includes('reset')) setAlarms([])
-      }
-      recognition.start(); setListening(true)
-      recognition.onend = () => setListening(false)
-    } else recognition.stop()
+
+  const state = emotion === 'Overloaded' ? 'OVERLOAD' : emotion === 'Stressed' ? 'STRESS' : 'NORMAL'
+  const sortedAlarms = [...alarms].sort((a, b) => byPriority[a.priority] - byPriority[b.priority])
+  const criticalCount = alarms.filter((a) => a.priority === 'Critical').length
+  const emotionConfidence = Math.round(71 + Math.random() * 25)
+
+  useEffect(() => setEmergency(criticalCount > 0), [criticalCount])
+
+  const executeCommand = (raw) => {
+    const text = raw.toLowerCase().trim()
+    setTranscript(text)
+    if (text.includes('show critical')) setAlarms((prev) => prev.filter((a) => a.priority === 'Critical'))
+    if (text.includes('activate emergency')) setEmergency(true)
+    if (text.includes('simplify')) setEmotion('Overloaded')
+    if (text.includes('reset alarms')) setAlarms(initialAlarms)
+    const response = Object.entries(responses).find(([key]) => text.includes(key))?.[1] || 'Command received.'
+    setAiResponse(response)
+    setHistory((h) => [...h.slice(-7), `CMD: ${text}`, `AI: ${response}`])
   }
 
-  const aiConfidence = Math.round(84 + Math.random() * 14)
-  const health = Math.round(90 + Math.random() * 9)
+  const startVoice = () => {
+    if (!recognition) return
+    recognition.onresult = (e) => executeCommand(e.results[0][0].transcript)
+    recognition.onend = () => setListening(false)
+    recognition.start()
+    setListening(true)
+  }
+  const stopVoice = () => { recognition?.stop(); setListening(false); executeCommand('stop') }
+
+  const alarmFreq = [
+    { hour: '08:00', Critical: 2, High: 4, Medium: 5, Low: 7 },
+    { hour: '10:00', Critical: 1, High: 3, Medium: 6, Low: 5 },
+    { hour: '12:00', Critical: 3, High: 4, Medium: 4, Low: 6 },
+    { hour: '14:00', Critical: 2, High: 5, Medium: 3, Low: 7 },
+  ]
 
   return (
-    <div className={`min-h-screen cyber-bg grid-overlay p-4 md:p-6 ${emergency ? 'ring-4 ring-red-500/40' : ''}`}>
-      <Header emergency={emergency} aiConfidence={aiConfidence} health={health} />
-      {emergency && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='glass border-red-500/60 p-4 mt-4 text-center'><h2 className='text-2xl text-red-400 font-bold'>EMERGENCY FULLSCREEN MODE</h2><p>AI response: isolate Zone A, deploy coolant backup, initiate evacuation countdown: 120s.</p><button className='mt-2 px-4 py-2 bg-red-500/30 rounded' onClick={() => setEmergency(false)}>Acknowledge</button></motion.div>}
-      <div className='grid xl:grid-cols-3 gap-4 mt-4'>
-        <div className='xl:col-span-2 grid sm:grid-cols-2 lg:grid-cols-4 gap-3'>{sensors.map((s) => <SensorCard key={s.name} s={s} />)}</div>
-        <div className={`${state === 'OVERLOAD' ? 'opacity-60' : ''}`}><AlarmCenter alarms={state === 'OVERLOAD' ? alarms.filter((a) => a.priority === 'Critical') : alarms} setEmergency={setEmergency} setAlarms={setAlarms} /></div>
-      </div>
-      <div className='grid lg:grid-cols-3 gap-4 mt-4'>
-        <VoicePanel listening={listening} transcript={transcript} history={history} onToggle={toggleListening} />
-        <WebcamPanel emotion={emotion} setEmotion={setEmotion} />
-        <div className='glass p-4'><h3 className='font-semibold'>AI Recommendation Engine</h3><ul className='text-sm mt-2 space-y-2'><li>Cooling efficiency dropped by 12%.</li><li>Motor failure probability: 87%.</li><li>Optimization: reduce load in Zone C by 9%.</li></ul><div className='text-xs mt-3 text-cyan-200'>Adaptive Mode: {state}</div></div>
-      </div>
-      <div className='mt-4'><Analytics data={[{ name: 'Critical', value: 5 }, { name: 'High', value: 8 }, { name: 'Medium', value: 13 }, { name: 'Low', value: 21 }]} /></div>
+    <div className={`min-h-screen text-slate-100 app-bg ${emergency ? 'emergency-glow' : ''}`}>
+      <TopHeader aiConfidence={89} sysHealth={76} criticalCount={criticalCount} />
+      <main className='max-w-[1400px] mx-auto p-4 md:p-6 space-y-4'>
+        {emergency && <div className='panel border-red-500 text-red-300 p-3 rounded-xl'>EMERGENCY MODE ACTIVE • Follow action protocol immediately.</div>}
+        <section className='grid md:grid-cols-2 xl:grid-cols-4 gap-3'>{sensors.map((s) => <SensorCard key={s.name} s={s} />)}</section>
+        <section className='grid xl:grid-cols-3 gap-4'>
+          <div className='xl:col-span-2'><AlarmCenter alarms={state === 'OVERLOAD' ? sortedAlarms.filter((a) => a.priority === 'Critical') : sortedAlarms} onPriorityChange={(id, priority) => setAlarms((prev) => prev.map((a) => a.id === id ? { ...a, priority } : a))} /></div>
+          <RightCharts alarmFreq={alarmFreq} categories={[{ name: 'Mechanical', value: 34, color: '#f97316' }, { name: 'Electrical', value: 26, color: '#3b82f6' }, { name: 'Thermal', value: 22, color: '#ec4899' }, { name: 'Software', value: 18, color: '#a855f7' }]} />
+        </section>
+        <EmotionVoicePanel emotion={emotion} setEmotion={setEmotion} emotionConfidence={emotionConfidence} transcript={transcript} history={history} listening={listening} onStartVoice={startVoice} onStopVoice={stopVoice} aiResponse={aiResponse} />
+      </main>
     </div>
   )
 }
