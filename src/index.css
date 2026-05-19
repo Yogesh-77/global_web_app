@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+body { margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; background: #020816; }
+.app-bg { background: radial-gradient(circle at 20% 0%, rgba(59,130,246,.2), transparent 32%), radial-gradient(circle at 80% 0%, rgba(168,85,247,.2), transparent 30%), #060d1a; }
+.panel { background: rgba(4, 19, 50, 0.5); border: 1px solid rgba(56, 189, 248, 0.2); backdrop-filter: blur(8px); box-shadow: inset 0 0 80px rgba(17, 71, 138, 0.1), 0 0 25px rgba(6, 182, 212, 0.08); }
+.title { display: flex; gap: .5rem; letter-spacing: .2em; color: #93c5fd; font-weight: 700; }
+.badge { border: 1px solid rgba(34,197,94,.5); padding: .3rem .8rem; border-radius: .5rem; background: rgba(34,197,94,.1); }
+.select { background: #0b1a38; border: 1px solid rgba(59,130,246,.35); border-radius: .6rem; color: #dbeafe; padding: .4rem .6rem; }
+.btn { display:flex; align-items:center; gap:.35rem; background:#10244d; border:1px solid rgba(56,189,248,.4); color:#7dd3fc; border-radius:.6rem; padding:.35rem .7rem; }
+.emergency-glow { box-shadow: inset 0 0 180px rgba(239,68,68,.15); }
