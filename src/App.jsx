@@ -56,10 +56,25 @@ export default function App() {
 
   const alarmFreq = [
     { hour: '08:00', Critical: 2, High: 4, Medium: 5, Low: 7 },
+    { hour: '09:00', Critical: 1, High: 3, Medium: 4, Low: 6 },
     { hour: '10:00', Critical: 1, High: 3, Medium: 6, Low: 5 },
+    { hour: '11:00', Critical: 3, High: 5, Medium: 4, Low: 5 },
     { hour: '12:00', Critical: 3, High: 4, Medium: 4, Low: 6 },
+    { hour: '13:00', Critical: 2, High: 5, Medium: 5, Low: 7 },
     { hour: '14:00', Critical: 2, High: 5, Medium: 3, Low: 7 },
   ]
+
+  const cognitiveTrend = [
+    { t: '08:00', focus: 72, fatigue: 20 },
+    { t: '09:00', focus: 78, fatigue: 23 },
+    { t: '10:00', focus: 75, fatigue: 26 },
+    { t: '11:00', focus: 83, fatigue: 21 },
+    { t: '12:00', focus: 86, fatigue: 18 },
+    { t: '13:00', focus: 81, fatigue: 24 },
+    { t: '14:00', focus: 88, fatigue: 16 },
+  ]
+
+  const cognizantScore = Math.round((cognitiveTrend.reduce((a, c) => a + c.focus, 0) / cognitiveTrend.length) - (cognitiveTrend.reduce((a, c) => a + c.fatigue, 0) / cognitiveTrend.length) * 0.3)
 
   return (
     <div className={`min-h-screen text-slate-100 app-bg ${emergency ? 'emergency-glow' : ''}`}>
@@ -69,7 +84,7 @@ export default function App() {
         <section className='grid md:grid-cols-2 xl:grid-cols-4 gap-3'>{sensors.map((s) => <SensorCard key={s.name} s={s} />)}</section>
         <section className='grid xl:grid-cols-3 gap-4'>
           <div className='xl:col-span-2'><AlarmCenter alarms={state === 'OVERLOAD' ? sortedAlarms.filter((a) => a.priority === 'Critical') : sortedAlarms} onPriorityChange={(id, priority) => setAlarms((prev) => prev.map((a) => a.id === id ? { ...a, priority } : a))} /></div>
-          <RightCharts alarmFreq={alarmFreq} categories={[{ name: 'Mechanical', value: 34, color: '#f97316' }, { name: 'Electrical', value: 26, color: '#3b82f6' }, { name: 'Thermal', value: 22, color: '#ec4899' }, { name: 'Software', value: 18, color: '#a855f7' }]} />
+          <RightCharts alarmFreq={alarmFreq} cognitiveTrend={cognitiveTrend} cognizantScore={cognizantScore} categories={[{ name: 'Mechanical', value: 34, color: '#f97316' }, { name: 'Electrical', value: 26, color: '#3b82f6' }, { name: 'Thermal', value: 22, color: '#ec4899' }, { name: 'Software', value: 18, color: '#a855f7' }]} />
         </section>
         <EmotionVoicePanel emotion={emotion} setEmotion={setEmotion} emotionConfidence={emotionConfidence} transcript={transcript} history={history} listening={listening} onStartVoice={startVoice} onStopVoice={stopVoice} aiResponse={aiResponse} />
       </main>
